@@ -2,3 +2,7 @@ numpy
 requests
 pypdf
 python-docx
+openpyxl
+pytesseract
+pymupdf
+Pillow

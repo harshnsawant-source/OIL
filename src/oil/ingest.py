@@ -18,15 +18,23 @@ def _load_txt(path):
     return [(Path(path).read_text(encoding="utf-8", errors="ignore"), "")]
 
 
+_OCR_MIN_CHARS = 20   # a page with less extractable text than this is likely scanned
+
+
 def _load_pdf(path):
     from pypdf import PdfReader
     reader = PdfReader(str(path))
-    pages = []
-    for n, page in enumerate(reader.pages, start=1):
-        text = page.extract_text() or ""
-        if text.strip():
-            pages.append((text, f"p{n}"))
-    return pages
+    page_texts = [(page.extract_text() or "") for page in reader.pages]
+
+    # OCR fallback for scanned pages (little/no embedded text), if OCR is set up.
+    low = [i for i, t in enumerate(page_texts) if len(t.strip()) < _OCR_MIN_CHARS]
+    if low:
+        from oil.ocr import ocr_pdf_pages
+        for i, text in ocr_pdf_pages(path, low).items():
+            if text.strip():
+                page_texts[i] = text
+
+    return [(t, f"p{n}") for n, t in enumerate(page_texts, start=1) if t.strip()]
 
 
 def _load_docx(path):
@@ -36,11 +44,41 @@ def _load_docx(path):
     return [(text, "")] if text.strip() else []
 
 
+def _load_xlsx(path):
+    import openpyxl
+    wb = openpyxl.load_workbook(str(path), read_only=True, data_only=True)
+    out = []
+    for ws in wb.worksheets:
+        rows = []
+        for row in ws.iter_rows(values_only=True):
+            cells = ["" if v is None else str(v) for v in row]
+            if any(c.strip() for c in cells):
+                rows.append(" | ".join(cells))
+        if rows:
+            text = f"Sheet: {ws.title}\n" + "\n".join(rows)
+            out.append((text, f"sheet:{ws.title}"))
+    wb.close()
+    return out
+
+
+def _load_image(path):
+    # Scanned image -> OCR. Empty (skipped) if OCR isn't configured.
+    from oil.ocr import ocr_image
+    text = ocr_image(path)
+    return [(text, "")] if text.strip() else []
+
+
 LOADERS = {
     ".txt": _load_txt,
     ".md": _load_txt,
     ".pdf": _load_pdf,
     ".docx": _load_docx,
+    ".xlsx": _load_xlsx,
+    ".png": _load_image,
+    ".jpg": _load_image,
+    ".jpeg": _load_image,
+    ".tiff": _load_image,
+    ".bmp": _load_image,
 }
 
 

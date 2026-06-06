@@ -61,9 +61,25 @@ embeddings, retrieval, privacy/consent, output-health) and rebuilds the trust
 engine (chunked + cited + grounded + refusal) cleanly, without the orchestration
 baggage.
 
+## Supported document formats
+
+Text/Markdown, **PDF** (text + scanned via OCR), **Word (.docx)**, **Excel (.xlsx)**,
+and **images** (.png/.jpg/.tiff/.bmp via OCR). PDF citations are page-level
+(`p13`); Excel citations are per sheet (`sheet:Invoices`).
+
 ## Setup (dev)
 
 ```bash
 pip install -r requirements.txt
 ollama pull nomic-embed-text     # local embeddings
+```
+
+**OCR (scanned PDFs + images)** also needs the Tesseract engine (a system binary,
+not pip). Everything else works without it; until it's installed, images/scanned
+pages are skipped gracefully (`oil.ocr.ocr_available()` reports readiness):
+
+```bash
+# Windows
+winget install UB-Mannheim.TesseractOCR
+# macOS:  brew install tesseract     Linux:  sudo apt-get install tesseract-ocr
 ```

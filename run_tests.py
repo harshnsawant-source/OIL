@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parent
 
 SUITES = [
     "tests/test_ingest_index.py",
+    "tests/test_loaders.py",
     "tests/test_answer.py",
 ]
 

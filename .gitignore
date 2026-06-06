@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local generated state (indexes, audit logs, runtime artifacts)
+state/
+*.jsonl
+*.sqlite
+
+# Never commit real client/confidential documents or test corpora
+data/
+documents/
+sample_docs/
+
+# OS / editor
+.DS_Store
+.vscode/

@@ -1,0 +1,4 @@
+# Local-first; no paid AI APIs.
+numpy           # vector math for retrieval
+requests        # talk to the local Ollama daemon (embeddings + generation)
+pypdf           # PDF text extraction (added when we move past txt/md)

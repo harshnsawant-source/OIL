@@ -9,6 +9,7 @@ SUITES = [
     "tests/test_ingest_index.py",
     "tests/test_loaders.py",
     "tests/test_answer.py",
+    "tests/test_app.py",
 ]
 
 

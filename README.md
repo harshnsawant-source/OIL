@@ -67,12 +67,17 @@ Text/Markdown, **PDF** (text + scanned via OCR), **Word (.docx)**, **Excel (.xls
 and **images** (.png/.jpg/.tiff/.bmp via OCR). PDF citations are page-level
 (`p13`); Excel citations are per sheet (`sheet:Invoices`).
 
-## Setup (dev)
+## Run
 
 ```bash
 pip install -r requirements.txt
 ollama pull nomic-embed-text     # local embeddings
+python run_ui.py                 # open http://127.0.0.1:5000
 ```
+Point it at a folder of documents, then ask. Answers cite the source page; if the
+answer isn't in your documents it says so. Runs on 127.0.0.1 only — nothing
+leaves the machine. (Generation is local by default; `OIL_MODEL=cloud` is for
+demos on non-confidential data only.)
 
 **OCR (scanned PDFs + images)** also needs the Tesseract engine (a system binary,
 not pip). Everything else works without it; until it's installed, images/scanned

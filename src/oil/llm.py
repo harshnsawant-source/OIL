@@ -6,11 +6,14 @@ must never be pointed at real client documents. In production the answer engine
 uses `local_generate` (on the buyer's own hardware), so nothing leaves the device.
 """
 
+import os
 import requests
 
 OLLAMA_GEN_URL = "http://localhost:11434/api/generate"
-LOCAL_MODEL = "qwen3.5:4b"
-CLOUD_MODEL = "qwen3-coder:480b-cloud"   # synthetic-eval only; never real data
+# Configurable so you can measure the minimum viable local model on real
+# hardware (e.g. OIL_LOCAL_MODEL=qwen2.5:7b-instruct) without code changes.
+LOCAL_MODEL = os.environ.get("OIL_LOCAL_MODEL", "qwen3.5:4b")
+CLOUD_MODEL = os.environ.get("OIL_CLOUD_MODEL", "qwen3-coder:480b-cloud")
 
 
 def _generate(prompt, model, max_tokens=600, timeout=120):
@@ -32,7 +35,10 @@ def _generate(prompt, model, max_tokens=600, timeout=120):
 
 
 def local_generate(prompt):
-    return _generate(prompt, LOCAL_MODEL, timeout=120)
+    # Generous default: a 7B on a weak CPU can take minutes — a too-short timeout
+    # would return empty and be misread as a model failure (it's just slow).
+    timeout = int(os.environ.get("OIL_LOCAL_TIMEOUT", "300"))
+    return _generate(prompt, LOCAL_MODEL, timeout=timeout)
 
 
 def cloud_generate(prompt):

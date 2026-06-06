@@ -19,12 +19,17 @@ sys.path.insert(0, str(ROOT / "eval"))
 
 from oil import ingest
 from oil.index import DocIndex
-from oil.answer import answer
-from oil.llm import cloud_generate
+from oil.answer import answer, format_citations
+from oil.llm import cloud_generate, local_generate
 from cases import CASES
 
 
 def main():
+    # Usage: python eval/run_eval.py [local|cloud]   (default: cloud)
+    which = sys.argv[1].lower() if len(sys.argv) > 1 else "cloud"
+    generate = local_generate if which == "local" else cloud_generate
+    print(f"model arm: {which}\n")
+
     idx = DocIndex()
     idx.build(ingest.load_folder(str(ROOT / "eval" / "corpus")))
 
@@ -37,27 +42,28 @@ def main():
         if not c["answerable"]:
             continue
         cit_tot += 1
-        r = answer(c["question"], idx, generate=cloud_generate)
+        r = answer(c["question"], idx, generate=generate)
         ans = (r["answer"] or "").lower()
         contains = any(s.lower() in ans for s in c["must_contain"])
-        cited_ok = c["source"] in r["citations"]
+        cited_ok = any(ref["source"] == c["source"] for ref in r["citations"])
         ok = (not r["refused"]) and cited_ok and contains
         cit_ok += ok
         if r["refused"]:
             wrong_refusals += 1
         flag = "ok " if ok else "XX "
-        cite = ",".join(r["citations"]) or ("REFUSED" if r["refused"] else "-")
-        print(f"  {flag} cite={cite:24} fact={'Y' if contains else 'N'}  Q: {c['question']}")
+        cite = format_citations(r["citations"]) or ("REFUSED" if r["refused"] else "-")
+        print(f"  {flag} cite=[{cite}] fact={'Y' if contains else 'N'}  Q: {c['question']}")
 
     print("\nUNANSWERABLE (must refuse):")
     for c in CASES:
         if c["answerable"]:
             continue
         ref_tot += 1
-        r = answer(c["question"], idx, generate=cloud_generate)
+        r = answer(c["question"], idx, generate=generate)
         ref_ok += r["refused"]
         flag = "ok " if r["refused"] else "XX "
-        print(f"  {flag} {'refused' if r['refused'] else 'ANSWERED:'+r['citations'][0] if r['citations'] else 'ANSWERED'}  Q: {c['question']}")
+        status = "refused" if r["refused"] else f"ANSWERED [{format_citations(r['citations'])}]"
+        print(f"  {flag} {status}  Q: {c['question']}")
 
     print("\n=== SCORECARD ===")
     print(f"  citation accuracy   : {cit_ok}/{cit_tot}")

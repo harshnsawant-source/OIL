@@ -71,15 +71,27 @@ def answer(query, index, k=TOP_K, generate=local_generate):
 
     cited = [chunks[n - 1] for n in valid]
     citations = []
+    seen = set()
     for c in cited:
-        src = Path(c["source"]).name
-        if src not in citations:
-            citations.append(src)
+        ref = {"source": Path(c["source"]).name, "location": c.get("location", "")}
+        key = (ref["source"], ref["location"])
+        if key not in seen:
+            seen.add(key)
+            citations.append(ref)
 
     return {
         "refused": False,
         "answer": raw.strip(),
-        "citations": citations,
+        "citations": citations,        # [{source, location}] -> file + page
         "chunks_used": cited,
         "reason": "answered from documents",
     }
+
+
+def format_citations(citations):
+    # Human-readable references, e.g. "report.pdf, p13; policy.md".
+    parts = []
+    for ref in citations:
+        loc = f", {ref['location']}" if ref.get("location") else ""
+        parts.append(f"{ref['source']}{loc}")
+    return "; ".join(parts)

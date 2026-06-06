@@ -17,3 +17,10 @@ sample_docs/
 # OS / editor
 .DS_Store
 .vscode/
+
+# Never commit user/test documents (any format)
+*.pdf
+*.docx
+*.xlsx
+*.doc
+*.xls

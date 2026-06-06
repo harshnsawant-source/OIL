@@ -40,7 +40,7 @@ def gen(text):
 r = answer("retainer?", idx, generate=gen("The retainer is $12,000 [1]."))
 check("answer: grounded answer is not refused", r["refused"] is False)
 check("answer: citation maps [1] -> correct source",
-      r["citations"] == ["services_agreement.md"])
+      r["citations"] == [{"source": "services_agreement.md", "location": ""}])
 check("answer: answer text preserved", "12,000" in r["answer"])
 check("answer: chunks_used carries the cited chunk", len(r["chunks_used"]) == 1)
 
@@ -64,14 +64,24 @@ check("answer: uncited answer -> refused (strict trust)", r["refused"] is True)
 # ---- correct mapping to the second source ----
 r = answer("pto?", idx, generate=gen("Employees get 20 days [2]."))
 check("answer: [2] maps to second source",
-      r["citations"] == ["employee_handbook.md"])
+      r["citations"] == [{"source": "employee_handbook.md", "location": ""}])
 
-# ---- multiple citations dedupe by source ----
+# ---- page-level citation: location is surfaced ----
+paged = FakeIndex([{"source": "/docs/report.pdf", "location": "p13",
+                    "chunk_index": 0, "text": "the result was 42"}])
+r = answer("result?", paged, generate=gen("The result was 42 [1]."))
+check("answer: citation carries page location",
+      r["citations"] == [{"source": "report.pdf", "location": "p13"}])
+from oil.answer import format_citations
+check("answer: format_citations renders file + page",
+      format_citations(r["citations"]) == "report.pdf, p13")
+
+# ---- dedupe identical (source, location) references ----
 multi = FakeIndex(CHUNKS + [{"source": "/docs/services_agreement.md",
-                             "location": "p2", "chunk_index": 1, "text": "more terms"}])
+                             "location": "", "chunk_index": 1, "text": "more terms"}])
 r = answer("x?", multi, generate=gen("See [1] and [3]."))
-check("answer: multiple chunks, same source deduped",
-      r["citations"] == ["services_agreement.md"])
+check("answer: identical (source,location) deduped to one citation",
+      r["citations"] == [{"source": "services_agreement.md", "location": ""}])
 
 # ---- no passages retrieved -> refuse ----
 r = answer("x?", FakeIndex([]), generate=gen("anything [1]"))

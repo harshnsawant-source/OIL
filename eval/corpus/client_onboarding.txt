@@ -1,0 +1,13 @@
+Meridian Consulting — New Client Onboarding Checklist
+
+1. Signed Master Services Agreement on file.
+2. Signed mutual NDA BEFORE any client data is shared or accessed.
+3. Client data is processed on-premises only; it must never be uploaded to
+   third-party cloud AI services. This is a hard requirement of our engagements.
+4. Provision a dedicated, access-controlled project workspace.
+5. Identify the client's single point of contact and an escalation contact.
+6. Schedule the kickoff meeting within 10 business days of contract signature.
+7. Confirm invoicing details and billing contact.
+
+Security note: access to client documents is logged. Any access to confidential
+material is recorded with a timestamp and the document accessed.

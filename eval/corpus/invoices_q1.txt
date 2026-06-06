@@ -1,0 +1,18 @@
+Meridian Consulting LLC — Q1 2025 Invoice Summary (Client: Acme Corporation)
+
+Invoice #1042
+  Date issued: 2025-03-15
+  Amount: $12,000.00
+  Due date: 2025-04-14 (net 30)
+  Status: PAID on 2025-04-02
+
+Invoice #1043
+  Date issued: 2025-04-15
+  Amount: $12,000.00
+  Due date: 2025-05-15 (net 30)
+  Status: OUTSTANDING
+
+Notes:
+  - Late payments accrue a 1.5% per month late charge per the Master Services Agreement.
+  - Total billed in Q1 2025: $24,000.00.
+  - Outstanding balance as of 2025-05-01: $12,000.00 (Invoice #1043).

@@ -63,8 +63,12 @@ def answer(query, index, k=TOP_K, generate=local_generate):
         return _refused("answer not found in the documents")
 
     # Citation verification: only accept markers that point at a retrieved passage.
-    valid = sorted({n for n in (int(m) for m in _CITE_RE.findall(raw))
-                    if 1 <= n <= len(chunks)})
+    # Any marker outside the retrieved range is a fabricated reference; one valid [1]
+    # must not launder an invented [999], so the whole answer is refused.
+    markers = [int(m) for m in _CITE_RE.findall(raw)]
+    if any(not 1 <= n <= len(chunks) for n in markers):
+        return _refused("answer contained an unverifiable citation")
+    valid = sorted(set(markers))
     if not valid:
         # Answered, but we cannot verify it against a source -> do not trust it.
         return _refused("answer had no verifiable citation")

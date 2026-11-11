@@ -57,6 +57,13 @@ r = answer("x?", idx, generate=gen("It is $5,000 [9]."))
 check("answer: out-of-range citation rejected -> refused", r["refused"] is True
       and "verifiable citation" in r["reason"])
 
+# ---- a valid citation must not launder a fabricated one (found in review 2026-11-12) ----
+r = answer("retainer?", idx, generate=gen("The retainer is $12,000 [1], due net 15 [999]."))
+check("answer: valid [1] + out-of-range [999] -> refused", r["refused"] is True
+      and "unverifiable" in r["reason"])
+r = answer("retainer?", idx, generate=gen("The retainer is $12,000 [1] per the agreement [1]."))
+check("answer: repeated valid citations still pass", r["refused"] is False)
+
 # ---- answered with NO citation -> unsupported -> refuse ----
 r = answer("x?", idx, generate=gen("It is probably $5,000."))
 check("answer: uncited answer -> refused (strict trust)", r["refused"] is True)

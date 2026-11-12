@@ -2,12 +2,12 @@
 
 > Ask questions about your confidential documents and get answers **cited to the
 > exact source**, with an honest **"not in your documents"** when it doesn't know —
-> running **entirely on your own machine**, so nothing ever leaves the building.
+> running **on your own machine by default**, so in local mode nothing leaves the building.
 
 For people and firms who **legally cannot** put client data into ChatGPT: lawyers,
 accountants, advisors, clinicians, and anyone bound by confidentiality or
-regulation. The selling point isn't "AI" — it's **trust** (grounded, cited, never
-fabricated) and **privacy** (local, auditable, nothing leaves the device).
+regulation. The selling point isn't "AI" — it's **trust** (grounded, cited, refuses
+when it has no source) and **privacy** (local by default, auditable).
 
 ## What it is (and isn't)
 
@@ -34,8 +34,12 @@ Conservative professionals don't fear "is the AI smart enough" — they fear
 
 Trust is measured, not hoped for: a small eval set of *questions-with-known-sources*
 and *questions-that-should-be-refused* gates **citation accuracy** and **refusal
-correctness**. On the current labeled set the trust engine scores **14/14** with a
-capable model.
+correctness**. The current labeled set has 14 answerable questions and 5 that must
+be refused. With a cloud model standing in for a capable local one, the trust engine
+cited the correct source on **14/14** answerable questions. No refusal score is
+reported here: that cloud model has since been retired and the run has not been
+repeated on a local model. A valid citation shows which passage was used, not that
+the answer follows from it.
 
 ## MVP scope (ruthless)
 
@@ -76,9 +80,12 @@ ollama pull nomic-embed-text     # local embeddings
 python run_ui.py                 # open http://127.0.0.1:5000
 ```
 Point it at a folder of documents, then ask. Answers cite the source page; if the
-answer isn't in your documents it says so. Runs on 127.0.0.1 only — nothing
-leaves the machine. (Generation is local by default; `OIL_MODEL=cloud` is for
-demos on non-confidential data only.)
+answer isn't in your documents it says so. The UI runs on 127.0.0.1 only.
+Generation is local by default, and in that mode nothing leaves the machine.
+`OIL_MODEL=cloud` sends retrieved passages to a cloud model and is for demos on
+non-confidential data only. Known issues: the UI badge always reads "local" and
+does not yet show which mode is active, and the default cloud model has been
+retired, so cloud mode needs `OIL_CLOUD_MODEL` set to a working model.
 
 **OCR (scanned PDFs + images)** also needs the Tesseract engine (a system binary,
 not pip). Everything else works without it; until it's installed, images/scanned

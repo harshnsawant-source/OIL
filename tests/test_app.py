@@ -69,6 +69,31 @@ r = client.post("/ask", json={"question": "ceo salary?"})
 j = r.get_json()
 check("ui: refusal surfaced", j["ok"] is True and j["refused"] is True)
 
+# 2026-11-12: the privacy badge used to say "local · nothing leaves this machine" in
+# every mode, including OIL_MODEL=cloud. It must describe the mode that is active.
+import os
+
+os.environ.pop("OIL_MODEL", None)
+r = client.get("/")
+check("badge: default mode says local and nothing leaves",
+      b"local" in r.data and b"nothing leaves this machine" in r.data)
+r = client.post("/ask", json={"question": "retainer?"})
+check("ask: reports local mode", r.get_json().get("mode") == "local")
+
+os.environ["OIL_MODEL"] = "cloud"
+r = client.get("/")
+check("badge: cloud mode never claims nothing leaves",
+      b"nothing leaves this machine" not in r.data)
+check("badge: cloud mode warns that passages are sent out",
+      b"cloud" in r.data and b"sent to a cloud model" in r.data)
+r = client.post("/ask", json={"question": "retainer?"})
+check("ask: reports cloud mode", r.get_json().get("mode") == "cloud")
+
+os.environ["OIL_MODEL"] = "CLOUD"
+check("badge: mode check ignores case",
+      b"nothing leaves this machine" not in client.get("/").data)
+os.environ.pop("OIL_MODEL", None)
+
 
 print(f"\n{len(PASS)} passed, {len(FAIL)} failed")
 sys.exit(1 if FAIL else 0)

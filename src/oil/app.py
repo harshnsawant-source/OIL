@@ -1,7 +1,8 @@
-"""Minimal local web UI for OIL. Runs on 127.0.0.1 only — nothing leaves the
-machine. Point it at a folder, ask, get a grounded answer with page citations
-(or an honest "not found"). The answer model is local by default; set
-OIL_MODEL=cloud only for demos on non-confidential data.
+"""Minimal local web UI for OIL. The UI itself runs on 127.0.0.1 only. Point it at a
+folder, ask, get a grounded answer with page citations (or an honest "not found").
+The answer model is local by default, and in that mode nothing leaves the machine.
+OIL_MODEL=cloud sends retrieved passages to a cloud model: demos on non-confidential
+data only. The page badge shows which mode is active.
 """
 
 import os
@@ -19,10 +20,19 @@ app = Flask(__name__)
 _state = {"index": None, "folder": None}
 
 
+def _mode():
+    return "cloud" if os.environ.get("OIL_MODEL", "local").lower() == "cloud" else "local"
+
+
 def _generate():
-    if os.environ.get("OIL_MODEL", "local").lower() == "cloud":
-        return cloud_generate
-    return local_generate
+    return cloud_generate if _mode() == "cloud" else local_generate
+
+
+BADGES = {
+    "local": '<span class="badge">local · nothing leaves this machine</span>',
+    "cloud": '<span class="badge warn">cloud · passages are sent to a cloud model · '
+             'non-confidential data only</span>',
+}
 
 
 PAGE = """<!doctype html>
@@ -35,8 +45,9 @@ PAGE = """<!doctype html>
  #answer{white-space:pre-wrap;background:#f6f6f6;border-radius:8px;padding:14px;margin-top:12px}
  .sources{font-size:13px;color:#333;margin-top:8px} .refused{color:#a40000}
  .badge{font-size:12px;color:#0a7d33;border:1px solid #0a7d33;border-radius:4px;padding:2px 6px}
+ .badge.warn{color:#a40000;border-color:#a40000}
 </style></head><body>
-<h1>OIL — Private Document Q&amp;A <span class="badge">local · nothing leaves this machine</span></h1>
+<h1>OIL — Private Document Q&amp;A __BADGE__</h1>
 <p class="muted">Answers come only from your documents, cited to the source page. If the
 answer isn't in your documents, it says so — it does not guess.</p>
 
@@ -74,7 +85,8 @@ async function doAsk(){
 
 @app.get("/")
 def home():
-    return PAGE
+    # Read the mode on every request so the badge can never disagree with what /ask does.
+    return PAGE.replace("__BADGE__", BADGES[_mode()])
 
 
 @app.post("/index")
@@ -104,6 +116,7 @@ def do_ask():
         "citations": r["citations"],
         "sources": format_citations(r["citations"]),
         "reason": r["reason"],
+        "mode": _mode(),
     })
 
 

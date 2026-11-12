@@ -83,9 +83,9 @@ Point it at a folder of documents, then ask. Answers cite the source page; if th
 answer isn't in your documents it says so. The UI runs on 127.0.0.1 only.
 Generation is local by default, and in that mode nothing leaves the machine.
 `OIL_MODEL=cloud` sends retrieved passages to a cloud model and is for demos on
-non-confidential data only. Known issues: the UI badge always reads "local" and
-does not yet show which mode is active, and the default cloud model has been
-retired, so cloud mode needs `OIL_CLOUD_MODEL` set to a working model.
+non-confidential data only. The badge at the top of the page shows which mode is
+active. Known issue: the default cloud model has been retired, so cloud mode needs
+`OIL_CLOUD_MODEL` set to a working model.
 
 **OCR (scanned PDFs + images)** also needs the Tesseract engine (a system binary,
 not pip). Everything else works without it; until it's installed, images/scanned

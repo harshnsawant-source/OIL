@@ -23,6 +23,9 @@ RETRIEVAL_FLOOR = 0.45   # drop pure noise only; grounding decides refusal
 TOP_K = 5
 
 _CITE_RE = re.compile(r"\[(\d+)\]")
+# gpt-oss models write citations as 【1】 (full-width lenticular brackets). Normalise
+# those to [1] before verification; every number is still checked against the passages.
+_FULLWIDTH_CITE_RE = re.compile(r"【(\d+)】")
 
 
 def _build_prompt(query, chunks):
@@ -58,6 +61,7 @@ def answer(query, index, k=TOP_K, generate=local_generate):
     raw = generate(_build_prompt(query, chunks))
     if not raw:
         return _refused("model produced no output")
+    raw = _FULLWIDTH_CITE_RE.sub(r"[\1]", raw)
 
     if NOT_FOUND in raw.upper():
         return _refused("answer not found in the documents")

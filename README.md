@@ -35,11 +35,21 @@ Conservative professionals don't fear "is the AI smart enough" — they fear
 Trust is measured, not hoped for: a small eval set of *questions-with-known-sources*
 and *questions-that-should-be-refused* gates **citation accuracy** and **refusal
 correctness**. The current labeled set has 14 answerable questions and 5 that must
-be refused. With a cloud model standing in for a capable local one, the trust engine
-cited the correct source on **14/14** answerable questions. No refusal score is
-reported here: that cloud model has since been retired and the run has not been
-repeated on a local model. A valid citation shows which passage was used, not that
-the answer follows from it.
+be refused, over a small synthetic corpus (`eval/`). Run on 12 Nov 2026 with
+gpt-oss-120b (Groq) standing in for a capable local model
+(`python eval/run_eval.py cloud`):
+
+| | Result |
+|---|---|
+| Answerable: cited the expected source and contained the key fact | **13/14** |
+| Unanswerable: refused | **5/5** |
+| Answerable questions wrongly refused | **0** |
+
+The one miss cited the right file but failed the key-fact check ("net 30"); the reply
+from that run was not saved, so whether the wording or the fact was wrong is not known.
+An earlier run with a now-retired model scored 14/14 on the answerable questions.
+The eval has not yet been run in full on the local default model. A valid citation
+shows which passage was used, not that the answer follows from it.
 
 ## MVP scope (ruthless)
 
@@ -77,15 +87,17 @@ and **images** (.png/.jpg/.tiff/.bmp via OCR). PDF citations are page-level
 ```bash
 pip install -r requirements.txt
 ollama pull nomic-embed-text     # local embeddings
+ollama pull nemotron-3-nano:4b   # local answer model (default)
 python run_ui.py                 # open http://127.0.0.1:5000
 ```
 Point it at a folder of documents, then ask. Answers cite the source page; if the
 answer isn't in your documents it says so. The UI runs on 127.0.0.1 only.
 Generation is local by default, and in that mode nothing leaves the machine.
-`OIL_MODEL=cloud` sends retrieved passages to a cloud model and is for demos on
-non-confidential data only. The badge at the top of the page shows which mode is
-active. Known issue: the default cloud model has been retired, so cloud mode needs
-`OIL_CLOUD_MODEL` set to a working model.
+`OIL_MODEL=cloud` sends retrieved passages to gpt-oss-120b on Groq's free tier and
+is for demos on non-confidential data only. It needs a Groq key in the
+`GROQ_API_KEY` environment variable; without one, cloud mode refuses every question.
+The badge at the top of the page shows which mode is active. Override the models with
+`OIL_LOCAL_MODEL` (any Ollama model) and `OIL_CLOUD_MODEL` (any Groq model).
 
 **OCR (scanned PDFs + images)** also needs the Tesseract engine (a system binary,
 not pip). Everything else works without it; until it's installed, images/scanned

@@ -98,6 +98,16 @@ check("answer: no passages -> refused", r["refused"] is True)
 r = answer("x?", idx, generate=gen(""))
 check("answer: empty output -> refused", r["refused"] is True)
 
+# ---- 2026-11-12: gpt-oss writes citations as 【1】 (full-width brackets) ----
+r = answer("retainer?", idx, generate=gen("The monthly retainer fee is **$12,000 USD**【1】."))
+check("answer: full-width citation is read as [1]",
+      r["refused"] is False and r["citations"] == [{"source": "services_agreement.md", "location": ""}])
+check("answer: returned text uses the normal [1] form", "[1]" in r["answer"] and "【" not in r["answer"])
+r = answer("retainer?", idx, generate=gen("The retainer is $12,000 【1】【999】."))
+check("answer: an invented full-width citation still refuses", r["refused"] is True)
+r = answer("retainer?", idx, generate=gen("The retainer is $12,000 【note】."))
+check("answer: full-width brackets around non-numbers are not citations", r["refused"] is True)
+
 
 print(f"\n{len(PASS)} passed, {len(FAIL)} failed")
 sys.exit(1 if FAIL else 0)
